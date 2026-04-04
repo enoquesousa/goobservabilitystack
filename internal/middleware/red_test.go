@@ -8,7 +8,7 @@ import (
 	"github.com/ESousa97/goobservabilitystack/internal/middleware"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"
-	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 )
 
 // newTestConfig builds an isolated middleware.Config with a fresh prometheus.Registry
@@ -29,7 +29,7 @@ func newTestConfig(t *testing.T) middleware.Config {
 	return middleware.Config{
 		RequestsTotal: requestsTotal,
 		Duration:      duration,
-		Tracer:        trace.NewNoopTracerProvider().Tracer("test"),
+		Tracer:        noop.NewTracerProvider().Tracer("test"),
 	}
 }
 

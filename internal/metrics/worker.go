@@ -27,7 +27,7 @@ type Worker struct {
 
 // NewWorker creates a [Worker] that increments the given counter every interval
 // and instruments each task with an OTel span via the provided tracer.
-// Pass [trace.NewNoopTracerProvider().Tracer("")] to disable tracing.
+// Pass [noop.NewTracerProvider().Tracer("")] to disable tracing.
 // Returns an error if counter or duration is nil, or interval is not positive.
 func NewWorker(
 	counter prometheus.Counter,

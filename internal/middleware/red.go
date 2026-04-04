@@ -16,7 +16,7 @@ import (
 )
 
 // Config holds the injectable dependencies required by the RED middleware.
-// All fields must be non-nil. Pass [trace.NewNoopTracerProvider().Tracer("")] to
+// All fields must be non-nil. Pass [noop.NewTracerProvider().Tracer("")] to
 // disable tracing without changing the middleware configuration path.
 type Config struct {
 	// RequestsTotal is incremented on every request, labelled by method, route and status_code.
