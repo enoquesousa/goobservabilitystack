@@ -57,7 +57,6 @@ func RED(cfg Config) func(http.Handler) http.Handler {
 			// route pattern (if any) after ServeMux performs routing.
 			spanName := fmt.Sprintf("%s %s", r.Method, r.URL.Path)
 
-
 			// Open a server span named after the HTTP method and route pattern.
 			ctx, span := cfg.Tracer.Start(ctx,
 				spanName,
@@ -95,7 +94,7 @@ func RED(cfg Config) func(http.Handler) http.Handler {
 			// Clean the route label: if it starts with "METHOD ", remove the prefix
 			// to avoid redundancy with the "method" label.
 			methodPrefix := r.Method + " "
-			if len(route) > len(methodPrefix) && route[:		len(methodPrefix)] == methodPrefix {
+			if len(route) > len(methodPrefix) && route[:len(methodPrefix)] == methodPrefix {
 				route = route[len(methodPrefix):]
 			}
 

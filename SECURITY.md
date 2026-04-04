@@ -1,79 +1,72 @@
-# Security Policy
+# Política de Segurança
 
-## Supported Versions
+## Versões Suportadas
 
-| Version | Supported          |
+| Versão | Suportado |
 | ------- | ------------------ |
 | latest (master) | :white_check_mark: |
 
-## Reporting a Vulnerability
+## Reportando uma Vulnerabilidade
 
-If you discover a security vulnerability in `goobservabilitystack`, please report it responsibly by opening a [GitHub Security Advisory](https://github.com/ESousa97/goobservabilitystack/security/advisories/new) rather than a public issue.
+Se você descobrir uma vulnerabilidade de segurança no `goobservabilitystack`, reporte-a de forma responsável abrindo um [GitHub Security Advisory](https://github.com/ESousa97/goobservabilitystack/security/advisories/new) em vez de uma issue pública.
 
-Include in your report:
+Inclua no seu relatório:
 
-- A description of the vulnerability and its potential impact.
-- Steps to reproduce or a minimal proof-of-concept.
-- Affected versions or commits, if known.
+- Uma descrição da vulnerabilidade e seu impacto potencial.
+- Passos para reproduzir ou uma prova de conceito (PoC) mínima.
+- Versões ou commits afetados, se conhecidos.
 
-You can expect an acknowledgement within **5 business days** and a resolution or mitigation plan within **30 days**, depending on complexity.
+Você pode esperar um reconhecimento dentro de **5 dias úteis** e um plano de resolução ou mitigação em até **30 dias**, dependendo da complexidade.
 
-## Security Considerations
+## Considerações de Segurança
 
-### Metrics endpoint exposure
+### Exposição do endpoint de métricas
 
-The `/metrics` endpoint (default port `9091`) exposes runtime internals — goroutine counts, request rates, error rates, and latency histograms. This endpoint must not be reachable from untrusted networks.
+O endpoint `/metrics` (porta padrão `9091`) expõe dados internos do runtime — contagem de goroutines, taxas de requisição, taxas de erro e histogramas de latência. Este endpoint não deve ser acessível a partir de redes não confiáveis.
 
-Recommended mitigations:
+Mitigações recomendadas:
 
-- Bind the metrics server to a non-public interface (e.g., `127.0.0.1` or an internal overlay network).
-- Place the metrics endpoint behind a firewall rule or network policy that allows access only from your Prometheus scraper.
-- In Kubernetes, use a `NetworkPolicy` that restricts port `9091` to the monitoring namespace.
+- Vincule o servidor de métricas a uma interface não pública (ex: `127.0.0.1` ou uma rede interna).
+- Coloque o endpoint de métricas atrás de uma regra de firewall ou política de rede que permita acesso apenas do seu scraper Prometheus.
+- No Kubernetes, use uma `NetworkPolicy` que restrinja a porta `9091` ao namespace de monitoramento.
 
-### Application HTTP server
+### Servidor HTTP da Aplicação
 
-The application server (default port `8080`) serves `/healthz` and any future application routes. If exposed externally:
+O servidor da aplicação (porta padrão `8080`) serve `/healthz` e futuras rotas. Se exposto externamente:
 
-- Deploy behind a TLS-terminating reverse proxy or load balancer.
-- Do not expose the raw HTTP port directly to the internet.
+- Implante atrás de um proxy reverso ou balanceador de carga com terminação TLS.
+- Não exponha a porta HTTP bruta diretamente à internet.
 
-### Environment variables
+### Variáveis de Ambiente
 
-Sensitive configuration is passed via environment variables (`HTTP_PORT`, `METRICS_PORT`, `JAEGER_ENDPOINT`, `SERVICE_NAME`). When deploying with Docker Compose or Kubernetes:
+Configurações sensíveis são passadas via variáveis de ambiente (`HTTP_PORT`, `METRICS_PORT`, `JAEGER_ENDPOINT`, `SERVICE_NAME`). Ao implantar com Docker Compose ou Kubernetes:
 
-- Do not commit `.env` files containing real values to version control.
-- Use Kubernetes `Secret` objects or a secrets manager (Vault, AWS Secrets Manager, etc.) for credentials rather than plain `ConfigMap` entries.
+- Não comite arquivos `.env` contendo valores reais no controle de versão.
+- Use objetos `Secret` do Kubernetes ou um gerenciador de segredos (Vault, AWS Secrets Manager, etc.) para credenciais em vez de entradas simples de `ConfigMap`.
 
-### Jaeger / OTel exporter
+### Jaeger / Exportador OTel
 
-Trace data is exported over gRPC to `JAEGER_ENDPOINT` (default `localhost:4317`). In production:
+Dados de trace são exportados via gRPC para o `JAEGER_ENDPOINT` (padrão `localhost:4317`). Em produção:
 
-- Enable mutual TLS on the Jaeger collector endpoint.
-- Restrict network access so that only the application can reach port `4317`.
-- Traces may contain request metadata (routes, status codes); avoid including personally identifiable information in span attributes.
+- Ative mTLS no endpoint do coletor Jaeger.
+- Restrinja o acesso à rede para que apenas a aplicação possa alcançar a porta `4317`.
+- Traces podem conter metadados de requisição (rotas, status codes); evite incluir informações de identificação pessoal (PII) em atributos de span.
 
-### Dependency management
+### Gerenciamento de Dependências
 
-Dependencies are pinned in `go.sum` and managed via Go modules. To audit for known vulnerabilities:
+Dependências são fixadas no `go.sum` e gerenciadas via módulos Go. Para auditar vulnerabilidades conhecidas:
 
 ```bash
 go install golang.org/x/vuln/cmd/govulncheck@latest
 govulncheck ./...
 ```
 
-Dependency updates (including security patches) are automated via Dependabot for the `go_modules` ecosystem.
+As atualizações de dependências (incluindo patches de segurança) são automatizadas via Dependabot.
 
-### Docker image hygiene
+### Higiene da Imagem Docker
 
-When building a container image:
+Ao construir uma imagem de container:
 
-- Use a minimal base image (e.g., `gcr.io/distroless/static` or `scratch`) to reduce the attack surface.
-- Run the process as a non-root user.
-- Do not copy the Go toolchain or source code into the final image stage.
-
-## Out of scope
-
-The following are outside the threat model of this project and will not be treated as security issues:
-
-- Denial-of-service via high request rates to the metrics or application server (no rate limiting is implemented by design; handle this at the infrastructure layer).
-- Vulnerabilities in Prometheus, Jaeger, or Grafana themselves — report those to their respective upstream projects.
+- Use uma imagem base mínima (ex: `gcr.io/distroless/static` ou `scratch`) para reduzir a superfície de ataque.
+- Execute o processo como um usuário não root.
+- Não copie o toolchain do Go ou código-fonte para o estágio final da imagem.

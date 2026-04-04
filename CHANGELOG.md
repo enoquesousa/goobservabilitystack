@@ -1,45 +1,72 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
+e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
-## [Unreleased]
+## [Não lançado]
 
-### Planned
+### Planejado
 
-- RED middleware (`http_requests_total` counter, `http_request_duration_seconds` histogram) wrapping `http.Handler`.
-- OpenTelemetry tracing layer with Jaeger gRPC exporter and stdout fallback for development.
-- `go_goroutines_active` gauge updated by the background worker.
-- Docker Compose stack (Prometheus, Jaeger, Grafana) with provisioned dashboards.
-- GitHub Actions CI pipeline (build, test, lint, govulncheck).
+- Pipeline CI no GitHub Actions (build, test, lint, govulncheck).
+- Taxa de amostragem OTel configurável via variável de ambiente.
+- Imagem Docker multi-arquitetura publicada no ghcr.io.
+- Suporte a mTLS no exportador gRPC do Jaeger.
+
+---
+
+## [1.0.0] — 2025-01-01
+
+### Adicionado
+
+- Pacote `internal/middleware`:
+  - `Config` — struct de dependências injetáveis para o middleware RED (contador, histograma, tracer).
+  - `RED` — middleware HTTP que implementa a instrumentação de Taxa, Erros e Duração via `http_requests_total` e `http_request_duration_seconds`; envolve cada requisição em um span de servidor OTel e injeta headers W3C `traceparent` / `tracestate` na resposta.
+  - `statusRecorder` — wrapper minimalista de `http.ResponseWriter` que captura o código de status escrito pelos handlers.
+- Pacote `internal/tracing`:
+  - `New` — constrói um `TracerProvider` OTel com exportador OTLP gRPC. Retorna uma função de shutdown para flush limpo de spans.
+- Adições em `internal/metrics`:
+  - Histograma `process_duration_seconds` — latência de processamento simulada com durações aleatórias.
+  - Gauge `go_goroutines_active` — número atual de goroutines ativas no sistema.
+  - Counter vec `http_requests_total` — contador RED de taxa/erro rotulado por `method`, `route`, `status_code`.
+  - Histogram vec `http_request_duration_seconds` — histograma RED de duração rotulado por `method`, `route`.
+- Adições em `cmd/server/main.go`:
+  - Middleware RED conectado ao `http.ServeMux` da aplicação.
+  - `TracerProvider` OTel inicializado no startup.
+- Diretório `deploy/`:
+  - `deploy/prometheus/prometheus.yml` — config de scrape do Prometheus.
+  - `deploy/grafana/provisioning/` — datasource Prometheus e dashboard auto-provisionados.
+- `docker-compose.yml` — orquestra `app`, `prometheus`, `jaeger` e `grafana`.
+- `Dockerfile` — build multi-estágio; imagem final roda com usuário não-root.
+- `tests/middleware/red_integration_test.go` — testes de integração para o middleware RED.
+
+### Alterado
+
+- `Worker` agora emite um span OTel por ciclo além de incrementar o contador de eventos.
+- `Registry.NewRegistry` registra o conjunto completo de métricas RED na construção.
+- Target `up` do `Makefile` agora invoca `docker compose up --build`.
 
 ---
 
 ## [0.2.0] — 2025-01-01
 
-### Changed
+### Segurança
 
-- Bumped `google.golang.org/protobuf` to `v1.33.0` to resolve a known vulnerability (CVE addressed upstream).
+- Atualizado `google.golang.org/protobuf` para resolver vulnerabilidade conhecida de upstream.
 
 ---
 
 ## [0.1.0] — 2025-01-01
 
-### Added
+### Adicionado
 
-- `internal/metrics` package:
-  - `Registry` — wraps a custom `prometheus.Registry` (not the global default) with the `app_events_total` counter registered at construction time.
-  - `Worker` — increments a `prometheus.Counter` on a configurable fixed interval; stops cleanly via `context.Context` cancellation.
+- Pacote `internal/metrics`:
+  - `Registry` — encapsula um `prometheus.Registry` customizado com `app_events_total` registrado.
+  - `Worker` — incrementa um contador Prometheus em um intervalo fixo.
 - `cmd/server/main.go`:
-  - Application HTTP server on `HTTP_PORT` (default `8080`) with `/healthz` health check endpoint.
-  - Dedicated metrics HTTP server on `METRICS_PORT` (default `9091`) exposing `/metrics` for Prometheus scraping.
-  - Graceful shutdown with a 10-second drain timeout on `SIGTERM` / `SIGINT`.
-  - Explicit `ReadTimeout`, `WriteTimeout`, and `IdleTimeout` on both servers.
-- `tests/metrics` package:
-  - `TestNewRegistry` — verifies registry construction and `app_events_total` presence.
-  - `TestWorker` — verifies the counter increments at least twice within two tick intervals.
-  - `TestNewWorker_Errors` — verifies validation of nil counter and non-positive interval.
-- `Makefile` targets: `deps`, `build`, `test`, `lint`, `up`.
-- `SECURITY.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, `README.md`.
+  - Servidor HTTP da aplicação na porta `8080`.
+  - Servidor HTTP de métricas dedicado na porta `9091`.
+  - Graceful shutdown com timeout de 10 segundos.
+- Pacote `tests/metrics` com testes unitários para o registro e worker.
+- `Makefile` com targets: `deps`, `build`, `test`, `lint`, `up`.

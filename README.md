@@ -1,137 +1,154 @@
 # goobservabilitystack
 
-A production-ready observability telemetry reference implementation in Go, demonstrating the RED pattern (Rate, Errors, Duration) with Prometheus metrics and OpenTelemetry distributed tracing.
+> Implementação de referência para observabilidade em Go — métricas RED, tracing OTel, Prometheus, Jaeger e Grafana em uma stack única e composta.
 
-## Overview
+![CI](https://github.com/ESousa97/goobservabilitystack/actions/workflows/ci.yml/badge.svg)
+![Go Report Card](https://goreportcard.com/badge/github.com/ESousa97/goobservabilitystack)
+![Go Reference](https://pkg.go.dev/badge/github.com/ESousa97/goobservabilitystack.svg)
+![License](https://img.shields.io/github/license/ESousa97/goobservabilitystack)
+![Go Version](https://img.shields.io/github/go-mod/go-version/ESousa97/goobservabilitystack)
+![Last Commit](https://img.shields.io/github/last-commit/ESousa97/goobservabilitystack)
 
-`goobservabilitystack` is designed as a minimal, correct baseline for instrumenting Go HTTP services. It prioritises low CPU and memory overhead, a custom (non-global) Prometheus registry to prevent test pollution, and clean separation between transport, business logic, and telemetry layers.
+---
 
-## Architecture
+`goobservabilitystack` é uma base mínima e correta para instrumentação de serviços HTTP em Go. O projeto demonstra o padrão RED (Rate, Errors, Duration) usando métricas Prometheus e tracing distribuído OpenTelemetry, com separação clara entre as camadas de transporte, lógica de negócio e telemetria. Projetado para baixo overhead de CPU e memória em infraestruturas de alto throughput.
 
-```
-cmd/server/
-  main.go               — wires everything together; starts app + metrics HTTP servers
+## Demonstração
 
-internal/
-  metrics/
-    registry.go         — custom Prometheus registry + metric definitions
-    worker.go           — background goroutine that increments app_events_total every 5 s
-
-tests/
-  metrics/
-    registry_test.go    — unit tests for registry construction and metric registration
-    worker_test.go      — unit tests for worker tick behaviour and error paths
-```
-
-**Key design decisions:**
-
-- A `prometheus.NewRegistry()` (not the default global) isolates metrics per process instance and prevents cross-test pollution.
-- The `Worker` owns a single ticker goroutine; it stops cleanly via `context.Context` cancellation, preventing goroutine leaks.
-- The metrics server (`/metrics`) is served on a dedicated port, separate from the application server, so scrape traffic never competes with application traffic.
-- Both HTTP servers are configured with explicit `ReadTimeout`, `WriteTimeout`, and `IdleTimeout` to prevent resource exhaustion.
-
-## Prometheus Metrics
-
-| Metric | Type | Labels | Description |
-|---|---|---|---|
-| `app_events_total` | Counter | — | Background worker events, incremented every 5 s |
-
-Additional RED metrics (`http_requests_total`, `http_request_duration_seconds`) and a goroutine gauge (`go_goroutines_active`) are planned for the middleware layer.
-
-## Environment Variables
-
-| Variable | Default | Description |
-|---|---|---|
-| `HTTP_PORT` | `8080` | Application HTTP server port |
-| `METRICS_PORT` | `9091` | Prometheus `/metrics` scrape port |
-| `JAEGER_ENDPOINT` | `localhost:4317` | Jaeger gRPC collector endpoint |
-| `SERVICE_NAME` | `goobservabilitystack` | OpenTelemetry service name attribute |
-
-## Prerequisites
-
-- Go 1.22 or later
-- Docker and Docker Compose (for the full observability stack)
-- `golangci-lint` (for linting)
-
-## Getting Started
-
-### Run locally
+Inicie a stack completa e verifique o serviço em execução:
 
 ```bash
-# Download dependencies
+# Health check
+curl -i http://localhost:8080/healthz
+
+# Métricas Prometheus
+curl -s http://localhost:9091/metrics | grep http_requests_total
+
+# Inspecione um trace no Jaeger
+# Acesse http://localhost:16686 no seu navegador
+```
+
+![Preview do dashboard Grafana](assets/dashboard_preview.png)
+
+## Stack Tecnológico
+
+| Componente | Papel |
+|---|---|
+| Go 1.25+ | Runtime da aplicação |
+| [prometheus/client_golang](https://github.com/prometheus/client_golang) | Registro de métricas customizadas, contadores RED e histogramas |
+| [open-telemetry/opentelemetry-go](https://github.com/open-telemetry/opentelemetry-go) | Tracing distribuído com propagação de contexto W3C |
+| [Jaeger](https://www.jaegertracing.io/) | Backend de tracing (receptor OTLP gRPC) |
+| [Prometheus](https://prometheus.io/) | Backend de métricas e scraper |
+| [Grafana](https://grafana.com/) | Frontend de dashboard com painéis pré-provisionados |
+| Docker Compose | Orquestração local da stack completa de observabilidade |
+
+## Pré-requisitos
+
+- Go >= 1.25
+- Docker e Docker Compose (para a stack completa)
+- `golangci-lint`: `go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest`
+- `govulncheck`: `go install golang.org/x/vuln/cmd/govulncheck@latest`
+
+## Instalação e Uso
+
+### Como binário
+
+```bash
+go install github.com/ESousa97/goobservabilitystack/cmd/server@latest
+```
+
+### A partir do source
+
+```bash
+git clone https://github.com/ESousa97/goobservabilitystack.git
+cd goobservabilitystack
 make deps
-
-# Build the binary
 make build
-
-# Run the server
 ./bin/goobservabilitystack
 ```
 
-The application server listens on `http://localhost:8080` and the metrics endpoint on `http://localhost:9091/metrics`.
+O servidor da aplicação inicia em `http://localhost:8080` e o endpoint de métricas em `http://localhost:9091/metrics`.
 
-### Run with the full stack
+### Stack completa de observabilidade
 
 ```bash
-# Start Go app + Prometheus + Jaeger + Grafana
 make up
-
-# Stop the stack
-docker compose down
 ```
 
-| Service | URL |
+Este comando compila o binário Go e inicia Prometheus, Jaeger e Grafana via Docker Compose.
+
+| Serviço | URL |
 |---|---|
-| Application | http://localhost:8080 |
-| Metrics | http://localhost:9091/metrics |
+| Aplicação | http://localhost:8080 |
+| Métricas | http://localhost:9091/metrics |
 | Prometheus | http://localhost:9090 |
 | Jaeger UI | http://localhost:16686 |
-| Grafana | http://localhost:3000 |
+| Grafana | http://localhost:3000 (admin / admin) |
 
-### Health check
+## Makefile Targets
 
-```bash
-curl http://localhost:8080/healthz
-# HTTP 200
-```
+| Target | Descrição |
+|---|---|
+| `make deps` | Baixa e organiza as dependências do módulo Go |
+| `make build` | Compila o binário do servidor para `bin/goobservabilitystack` |
+| `make test` | Executa todos os testes com o race detector ativado |
+| `make lint` | Executa `golangci-lint` em todos os pacotes |
+| `make up` | Compila e inicia a stack completa com Docker Compose |
 
-## Development
+## Arquitetura
 
-```bash
-# Run all tests with the race detector
-make test
+O projeto segue uma estrutura modular focada em separação de preocupações:
 
-# Run a single test package verbosely
-go test ./tests/metrics/... -v
+- `cmd/server/main.go`: Ponto de entrada; orquestra dependências, inicia servidores HTTP e gerencia o graceful shutdown.
+- `internal/metrics/`: Registro customizado Prometheus e definições de métricas (sem estado global).
+- `internal/middleware/`: Middleware HTTP RED; envolve handlers com métricas de taxa/erro/duração e spans OTel.
+- `internal/tracing/`: Provedor OTel Tracer; configurado para exportação via gRPC para o Jaeger.
+- `deploy/`: Configurações de infraestrutura (Prometheus e provisionamento do Grafana).
 
-# Run a single test
-go test ./tests/metrics/... -run TestNewRegistry -v
+**Decisões arquiteturais:**
 
-# Lint
-make lint
+- Isolamento de métricas via `prometheus.NewRegistry()` para evitar poluição global.
+- Gerenciamento de ciclo de vida de goroutines via `context.Context`.
+- Servidor de métricas em porta dedicada para isolar tráfego de monitoramento.
+- Uso estrito de timeouts em servidores HTTP para resiliência de recursos.
 
-# Audit dependencies for known vulnerabilities
-govulncheck ./...
-```
+## API Reference
 
-## Project Layout Conventions
+A documentação detalhada dos pacotes está disponível em [pkg.go.dev](https://pkg.go.dev/github.com/ESousa97/goobservabilitystack).
 
-- Every exported symbol carries a Godoc comment that begins with the symbol name and forms a complete sentence.
-- Prometheus metric names follow strict conventions: `snake_case`, `_total` suffix for counters, `_seconds` or `_bytes` for unit suffixes.
-- No global state: the Prometheus registry and all metrics are passed explicitly via constructors.
+| Método | Caminho | Porta | Descrição |
+|---|---|---|---|
+| `GET` | `/healthz` | `8080` | Health check — retorna `200 OK` |
+| `GET` | `/metrics` | `9091` | Exposição de métricas no formato Prometheus |
 
-## Contributing
+## Configuração
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+| Variável | Tipo | Padrão | Descrição |
+|---|---|---|---|
+| `HTTP_PORT` | string | `8080` | Porta do servidor HTTP da aplicação |
+| `METRICS_PORT` | string | `9091` | Porta de scrape do Prometheus `/metrics` |
+| `JAEGER_ENDPOINT` | string | `localhost:4317` | Endpoint gRPC do coletor Jaeger |
+| `SERVICE_NAME` | string | `goobservabilitystack` | Nome do serviço para atributos OpenTelemetry |
 
-## Security
+## Roadmap
 
-See [SECURITY.md](SECURITY.md).
+- [x] Registro Prometheus customizado com métricas RED
+- [x] Tracing OpenTelemetry com exportador Jaeger gRPC
+- [x] Middleware HTTP RED com propagação de contexto W3C
+- [x] Stack Docker Compose com dashboard Grafana pré-provisionado
+- [ ] Pipeline CI no GitHub Actions (build, test, lint, govulncheck)
+- [ ] Taxa de amostragem OTel configurável via variável de ambiente
+- [ ] Imagem Docker multi-arquitetura publicada no ghcr.io
+- [ ] Suporte a mTLS no exportador gRPC do Jaeger
 
-## Changelog
+## Contribuindo
 
-See [CHANGELOG.md](CHANGELOG.md).
+Link para o [CONTRIBUTING.md](CONTRIBUTING.md) com detalhes sobre como configurar o ambiente e abrir pull requests.
 
-## License
+## Licença
 
-This project is licensed under the MIT License.
+Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
+
+## Autor
+
+Enoque Sousa — [enoquesousa.vercel.app](https://enoquesousa.vercel.app) · [github.com/ESousa97](https://github.com/ESousa97)

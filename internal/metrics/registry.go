@@ -12,9 +12,9 @@ import (
 // Registry holds a custom Prometheus registry and the metrics registered to it.
 // Use [NewRegistry] to construct a valid instance.
 type Registry struct {
-	reg              *prometheus.Registry
-	eventsTotal      prometheus.Counter
-	processDuration  prometheus.Histogram
+	reg               *prometheus.Registry
+	eventsTotal       prometheus.Counter
+	processDuration   prometheus.Histogram
 	httpRequestsTotal *prometheus.CounterVec
 	httpDuration      *prometheus.HistogramVec
 }
