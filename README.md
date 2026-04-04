@@ -1,6 +1,6 @@
 # goobservabilitystack
 
-> Implementação de referência para observabilidade em Go — métricas RED, tracing OTel, Prometheus, Jaeger e Grafana em uma stack única e composta.
+> Reference implementation for observability in Go — RED metrics, OTel tracing, Prometheus, Jaeger, and Grafana in a single, composed stack.
 
 ![CI](https://github.com/ESousa97/goobservabilitystack/actions/workflows/ci.yml/badge.svg)
 ![Go Report Card](https://goreportcard.com/badge/github.com/ESousa97/goobservabilitystack)
@@ -11,53 +11,53 @@
 
 ---
 
-`goobservabilitystack` é uma base mínima e correta para instrumentação de serviços HTTP em Go. O projeto demonstra o padrão RED (Rate, Errors, Duration) usando métricas Prometheus e tracing distribuído OpenTelemetry, com separação clara entre as camadas de transporte, lógica de negócio e telemetria. Projetado para baixo overhead de CPU e memória em infraestruturas de alto throughput.
+`goobservabilitystack` is a minimal and correct foundation for instrumenting HTTP services in Go. The project demonstrates the RED pattern (Rate, Errors, Duration) using Prometheus metrics and OpenTelemetry distributed tracing, with a clear separation between transport, business logic, and telemetry layers. Designed for low CPU and memory overhead in high-throughput infrastructures.
 
-## Demonstração
+## Demo
 
-Inicie a stack completa e verifique o serviço em execução:
+Start the full stack and verify the running service:
 
 ```bash
 # Health check
 curl -i http://localhost:8080/healthz
 
-# Métricas Prometheus
+# Prometheus metrics
 curl -s http://localhost:9091/metrics | grep http_requests_total
 
-# Inspecione um trace no Jaeger
-# Acesse http://localhost:16686 no seu navegador
+# Inspect a trace in Jaeger
+# Access http://localhost:16686 in your browser
 ```
 
-![Preview do dashboard Grafana](assets/dashboard_preview.png)
+![Grafana dashboard preview](assets/dashboard_preview.png)
 
-## Stack Tecnológico
+## Tech Stack
 
-| Componente | Papel |
+| Component | Role |
 |---|---|
-| Go 1.25+ | Runtime da aplicação |
-| [prometheus/client_golang](https://github.com/prometheus/client_golang) | Registro de métricas customizadas, contadores RED e histogramas |
-| [open-telemetry/opentelemetry-go](https://github.com/open-telemetry/opentelemetry-go) | Tracing distribuído com propagação de contexto W3C |
-| [Jaeger](https://www.jaegertracing.io/) | Backend de tracing (receptor OTLP gRPC) |
-| [Prometheus](https://prometheus.io/) | Backend de métricas e scraper |
-| [Grafana](https://grafana.com/) | Frontend de dashboard com painéis pré-provisionados |
-| Docker Compose | Orquestração local da stack completa de observabilidade |
+| Go 1.25+ | Application runtime |
+| [prometheus/client_golang](https://github.com/prometheus/client_golang) | Custom metrics registry, RED counters, and histograms |
+| [open-telemetry/opentelemetry-go](https://github.com/open-telemetry/opentelemetry-go) | Distributed tracing with W3C context propagation |
+| [Jaeger](https://www.jaegertracing.io/) | Tracing backend (OTLP gRPC receiver) |
+| [Prometheus](https://prometheus.io/) | Metrics backend and scraper |
+| [Grafana](https://grafana.com/) | Dashboard frontend with pre-provisioned panels |
+| Docker Compose | Local orchestration of the full observability stack |
 
-## Pré-requisitos
+## Prerequisites
 
 - Go >= 1.25
-- Docker e Docker Compose (para a stack completa)
+- Docker and Docker Compose (for the full stack)
 - `golangci-lint`: `go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest`
 - `govulncheck`: `go install golang.org/x/vuln/cmd/govulncheck@latest`
 
-## Instalação e Uso
+## Installation and Usage
 
-### Como binário
+### As a binary
 
 ```bash
 go install github.com/ESousa97/goobservabilitystack/cmd/server@latest
 ```
 
-### A partir do source
+### From source
 
 ```bash
 git clone https://github.com/ESousa97/goobservabilitystack.git
@@ -67,88 +67,95 @@ make build
 ./bin/goobservabilitystack
 ```
 
-O servidor da aplicação inicia em `http://localhost:8080` e o endpoint de métricas em `http://localhost:9091/metrics`.
+The application server starts at `http://localhost:8080` and the metrics endpoint at `http://localhost:9091/metrics`.
 
-### Stack completa de observabilidade
+### Full Observability Stack
 
 ```bash
 make up
 ```
 
-Este comando compila o binário Go e inicia Prometheus, Jaeger e Grafana via Docker Compose.
+This command compiles the Go binary and starts Prometheus, Jaeger, and Grafana via Docker Compose.
 
-| Serviço | URL |
+| Service | URL |
 |---|---|
-| Aplicação | http://localhost:8080 |
-| Métricas | http://localhost:9091/metrics |
+| Application | http://localhost:8080 |
+| Metrics | http://localhost:9091/metrics |
 | Prometheus | http://localhost:9090 |
 | Jaeger UI | http://localhost:16686 |
 | Grafana | http://localhost:3000 (admin / admin) |
 
 ## Makefile Targets
 
-| Target | Descrição |
+| Target | Description |
 |---|---|
-| `make deps` | Baixa e organiza as dependências do módulo Go |
-| `make build` | Compila o binário do servidor para `bin/goobservabilitystack` |
-| `make test` | Executa todos os testes com o race detector ativado |
-| `make lint` | Executa `golangci-lint` em todos os pacotes |
-| `make up` | Compila e inicia a stack completa com Docker Compose |
+| `make deps` | Downloads and tidies Go module dependencies |
+| `make build` | Compiles the server binary to `bin/goobservabilitystack` |
+| `make test` | Runs all tests with the race detector enabled |
+| `make lint` | Runs `golangci-lint` across all packages |
+| `make up` | Compiles and starts the full stack with Docker Compose |
 
-## Arquitetura
+## Architecture
 
-O projeto segue uma estrutura modular focada em separação de preocupações:
+The project follows a modular structure focused on separation of concerns:
 
-- `cmd/server/main.go`: Ponto de entrada; orquestra dependências, inicia servidores HTTP e gerencia o graceful shutdown.
-- `internal/metrics/`: Registro customizado Prometheus e definições de métricas (sem estado global).
-- `internal/middleware/`: Middleware HTTP RED; envolve handlers com métricas de taxa/erro/duração e spans OTel.
-- `internal/tracing/`: Provedor OTel Tracer; configurado para exportação via gRPC para o Jaeger.
-- `deploy/`: Configurações de infraestrutura (Prometheus e provisionamento do Grafana).
+- `cmd/server/main.go`: Entry point; orchestrates dependencies, starts HTTP servers, and manages graceful shutdown.
+- `internal/metrics/`: Custom Prometheus registry and metric definitions (no global state).
+- `internal/middleware/`: RED HTTP middleware; wraps handlers with rate/error/duration metrics and OTel spans.
+- `internal/tracing/`: OTel Tracer provider; configured for gRPC export to Jaeger.
+- `deploy/`: Infrastructure configurations (Prometheus and Grafana provisioning).
 
-**Decisões arquiteturais:**
+**Architectural Decisions:**
 
-- Isolamento de métricas via `prometheus.NewRegistry()` para evitar poluição global.
-- Gerenciamento de ciclo de vida de goroutines via `context.Context`.
-- Servidor de métricas em porta dedicada para isolar tráfego de monitoramento.
-- Uso estrito de timeouts em servidores HTTP para resiliência de recursos.
+- Metric isolation via `prometheus.NewRegistry()` to avoid global pollution.
+- Goroutine lifecycle management via `context.Context`.
+- Metrics server on a dedicated port to isolate monitoring traffic.
+- Strict use of timeouts in HTTP servers for resource resilience.
+
+## Implementation Journey
+
+The project was built in five incremental milestones, ensuring a solid foundation for observability:
+
+1. **The Expositor**: Foundation with `prometheus/client_golang` and isolated metrics exposure.
+2. **Advanced Instrumentation**: Use of semantic metric types (Histogram/Gauge) to measure internal health.
+3. **Distributed Tracing**: OpenTelemetry SDK integration for granular operational visibility.
+4. **RED Middleware**: Automation of HTTP telemetry for any registered route.
+5. **The Full Stack**: Unification of collectors, visualizers, and the application via Docker.
 
 ## API Reference
 
-A documentação detalhada dos pacotes está disponível em [pkg.go.dev](https://pkg.go.dev/github.com/ESousa97/goobservabilitystack).
+Detailed package documentation is available at [pkg.go.dev](https://pkg.go.dev/github.com/ESousa97/goobservabilitystack).
 
-| Método | Caminho | Porta | Descrição |
+| Method | Path | Port | Description |
 |---|---|---|---|
-| `GET` | `/healthz` | `8080` | Health check — retorna `200 OK` |
-| `GET` | `/metrics` | `9091` | Exposição de métricas no formato Prometheus |
+| `GET` | `/healthz` | `8080` | Health check — returns `200 OK` |
+| `GET` | `/metrics` | `9091` | Metrics exposure in Prometheus format |
 
-## Configuração
+## Configuration
 
-| Variável | Tipo | Padrão | Descrição |
+| Variable | Type | Default | Description |
 |---|---|---|---|
-| `HTTP_PORT` | string | `8080` | Porta do servidor HTTP da aplicação |
-| `METRICS_PORT` | string | `9091` | Porta de scrape do Prometheus `/metrics` |
-| `JAEGER_ENDPOINT` | string | `localhost:4317` | Endpoint gRPC do coletor Jaeger |
-| `SERVICE_NAME` | string | `goobservabilitystack` | Nome do serviço para atributos OpenTelemetry |
+| `HTTP_PORT` | string | `8080` | Application HTTP server port |
+| `METRICS_PORT` | string | `9091` | Prometheus scrape port `/metrics` |
+| `JAEGER_ENDPOINT` | string | `localhost:4317` | Jaeger collector gRPC endpoint |
+| `SERVICE_NAME` | string | `goobservabilitystack` | Service name for OpenTelemetry attributes |
 
-## Roadmap
+## Development Roadmap
 
-- [x] Registro Prometheus customizado com métricas RED
-- [x] Tracing OpenTelemetry com exportador Jaeger gRPC
-- [x] Middleware HTTP RED com propagação de contexto W3C
-- [x] Stack Docker Compose com dashboard Grafana pré-provisionado
-- [ ] Pipeline CI no GitHub Actions (build, test, lint, govulncheck)
-- [ ] Taxa de amostragem OTel configurável via variável de ambiente
-- [ ] Imagem Docker multi-arquitetura publicada no ghcr.io
-- [ ] Suporte a mTLS no exportador gRPC do Jaeger
+- [x] **Phase 1: The Expositor (Prometheus Registry)**: Custom registry configuration and `/metrics` exposure with background event counter.
+- [x] **Phase 2: Custom Instrumentation (Gauges and Histograms)**: Processing latency measurement via Histogram and goroutine monitoring via Gauge.
+- [x] **Phase 3: Distributed Tracing (OpenTelemetry and Spans)**: Implementation of spans detailing task execution and status attributes.
+- [x] **Phase 4: The RED Pattern (Monitoring Middleware)**: Agnostic HTTP middleware for automatic capture of Rate, Errors, and Duration (RED) and context injection.
+- [x] **Phase 5: The Ecosystem (Grafana, Jaeger, and Docker)**: Total integration via Docker Compose with gRPC trace export and pre-provisioned Grafana dashboards.
 
-## Contribuindo
+## Contributing
 
-Link para o [CONTRIBUTING.md](CONTRIBUTING.md) com detalhes sobre como configurar o ambiente e abrir pull requests.
+Link to [CONTRIBUTING.md](CONTRIBUTING.md) for details on setting up the environment and opening pull requests.
 
-## Licença
+## License
 
-Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
+Distributed under the MIT License. See `LICENSE` for more information.
 
-## Autor
+## Author
 
 Enoque Sousa — [enoquesousa.vercel.app](https://enoquesousa.vercel.app) · [github.com/ESousa97](https://github.com/ESousa97)

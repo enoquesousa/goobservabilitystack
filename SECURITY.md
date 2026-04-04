@@ -1,72 +1,72 @@
-# Política de Segurança
+# Security Policy
 
-## Versões Suportadas
+## Supported Versions
 
-| Versão | Suportado |
+| Version | Supported |
 | ------- | ------------------ |
 | latest (master) | :white_check_mark: |
 
-## Reportando uma Vulnerabilidade
+## Reporting a Vulnerability
 
-Se você descobrir uma vulnerabilidade de segurança no `goobservabilitystack`, reporte-a de forma responsável abrindo um [GitHub Security Advisory](https://github.com/ESousa97/goobservabilitystack/security/advisories/new) em vez de uma issue pública.
+If you discover a security vulnerability in `goobservabilitystack`, please report it responsibly by opening a [GitHub Security Advisory](https://github.com/ESousa97/goobservabilitystack/security/advisories/new) instead of a public issue.
 
-Inclua no seu relatório:
+Include in your report:
 
-- Uma descrição da vulnerabilidade e seu impacto potencial.
-- Passos para reproduzir ou uma prova de conceito (PoC) mínima.
-- Versões ou commits afetados, se conhecidos.
+- A description of the vulnerability and its potential impact.
+- Steps to reproduce or a minimal proof of concept (PoC).
+- Affected versions or commits, if known.
 
-Você pode esperar um reconhecimento dentro de **5 dias úteis** e um plano de resolução ou mitigação em até **30 dias**, dependendo da complexidade.
+You can expect an acknowledgment within **5 business days** and a resolution or mitigation plan within **30 days**, depending on complexity.
 
-## Considerações de Segurança
+## Security Considerations
 
-### Exposição do endpoint de métricas
+### Metrics Endpoint Exposure
 
-O endpoint `/metrics` (porta padrão `9091`) expõe dados internos do runtime — contagem de goroutines, taxas de requisição, taxas de erro e histogramas de latência. Este endpoint não deve ser acessível a partir de redes não confiáveis.
+The `/metrics` endpoint (default port `9091`) exposes internal runtime data — goroutine counts, request rates, error rates, and latency histograms. This endpoint must not be accessible from untrusted networks.
 
-Mitigações recomendadas:
+Recommended mitigations:
 
-- Vincule o servidor de métricas a uma interface não pública (ex: `127.0.0.1` ou uma rede interna).
-- Coloque o endpoint de métricas atrás de uma regra de firewall ou política de rede que permita acesso apenas do seu scraper Prometheus.
-- No Kubernetes, use uma `NetworkPolicy` que restrinja a porta `9091` ao namespace de monitoramento.
+- Bind the metrics server to a non-public interface (e.g., `127.0.0.1` or an internal network).
+- Place the metrics endpoint behind a firewall rule or network policy that allows access only from your Prometheus scraper.
+- In Kubernetes, use a `NetworkPolicy` that restricts port `9091` to the monitoring namespace.
 
-### Servidor HTTP da Aplicação
+### Application HTTP Server
 
-O servidor da aplicação (porta padrão `8080`) serve `/healthz` e futuras rotas. Se exposto externamente:
+The application server (default port `8080`) serves `/healthz` and future routes. If exposed externally:
 
-- Implante atrás de um proxy reverso ou balanceador de carga com terminação TLS.
-- Não exponha a porta HTTP bruta diretamente à internet.
+- Deploy behind a reverse proxy or load balancer with TLS termination.
+- Do not expose the raw HTTP port directly to the internet.
 
-### Variáveis de Ambiente
+### Environment Variables
 
-Configurações sensíveis são passadas via variáveis de ambiente (`HTTP_PORT`, `METRICS_PORT`, `JAEGER_ENDPOINT`, `SERVICE_NAME`). Ao implantar com Docker Compose ou Kubernetes:
+Sensitive configurations are passed via environment variables (`HTTP_PORT`, `METRICS_PORT`, `JAEGER_ENDPOINT`, `SERVICE_NAME`). When deploying with Docker Compose or Kubernetes:
 
-- Não comite arquivos `.env` contendo valores reais no controle de versão.
-- Use objetos `Secret` do Kubernetes ou um gerenciador de segredos (Vault, AWS Secrets Manager, etc.) para credenciais em vez de entradas simples de `ConfigMap`.
+- Do not commit `.env` files containing actual values to version control.
+- Use Kubernetes `Secret` objects or a secrets manager (Vault, AWS Secrets Manager, etc.) for credentials instead of plain `ConfigMap` entries.
 
-### Jaeger / Exportador OTel
+### Jaeger / OTel Exporter
 
-Dados de trace são exportados via gRPC para o `JAEGER_ENDPOINT` (padrão `localhost:4317`). Em produção:
+Trace data is exported via gRPC to the `JAEGER_ENDPOINT` (default `localhost:4317`). In production:
 
-- Ative mTLS no endpoint do coletor Jaeger.
-- Restrinja o acesso à rede para que apenas a aplicação possa alcançar a porta `4317`.
-- Traces podem conter metadados de requisição (rotas, status codes); evite incluir informações de identificação pessoal (PII) em atributos de span.
+- Enable mTLS on the Jaeger collector endpoint.
+- Restrict network access to only allow the application to reach port `4317`.
+- Traces can contain request metadata (routes, status codes); avoid including personally identifiable information (PII) in span attributes.
 
-### Gerenciamento de Dependências
+### Dependency Management
 
-Dependências são fixadas no `go.sum` e gerenciadas via módulos Go. Para auditar vulnerabilidades conhecidas:
+Dependencies are pinned in `go.sum` and managed via Go modules. To audit for known vulnerabilities:
 
 ```bash
 go install golang.org/x/vuln/cmd/govulncheck@latest
 govulncheck ./...
 ```
 
-As atualizações de dependências (incluindo patches de segurança) são automatizadas via Dependabot.
+Dependency updates (including security patches) are automated via Dependabot.
 
-### Higiene da Imagem Docker
+### Docker Image Hygiene
 
-Ao construir uma imagem de container:
+When building a container image:
 
-- Use uma imagem base mínima (ex: `gcr.io/distroless/static` ou `scratch`) para reduzir a superfície de ataque.
-- Execute o processo como um usuário não root.
-- Não copie o toolchain do Go ou código-fonte para o estágio final da imagem.
+- Use a minimal base image (e.g., `gcr.io/distroless/static` or `scratch`) to reduce the attack surface.
+- Run the process as a non-root user.
+- Do not copy the Go toolchain or source code into the final image stage.
