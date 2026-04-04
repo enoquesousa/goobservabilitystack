@@ -1,0 +1,52 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+      - "9091:9091"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=jaeger:4317
+      - HTTP_PORT=8080
+      - METRICS_PORT=9091
+    depends_on:
+      - jaeger
+      - prometheus
+    networks:
+      - observability
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - observability
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686" # UI
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+    networks:
+      - observability
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./deploy/grafana/provisioning:/etc/grafana/provisioning
+      - ./deploy/grafana/dashboards:/etc/grafana/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - prometheus
+    networks:
+      - observability
+
+networks:
+  observability:
+    driver: bridge
