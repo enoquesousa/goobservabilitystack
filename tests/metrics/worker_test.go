@@ -16,8 +16,14 @@ func TestWorker(t *testing.T) {
 		Help: "test",
 	})
 
+	duration := prometheus.NewHistogram(prometheus.HistogramOpts{
+		Name:    "test_duration",
+		Help:    "test",
+		Buckets: prometheus.DefBuckets,
+	})
+
 	interval := 50 * time.Millisecond
-	worker, err := metrics.NewWorker(counter, interval)
+	worker, err := metrics.NewWorker(counter, duration, interval)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -26,13 +32,14 @@ func TestWorker(t *testing.T) {
 
 	go worker.Run(ctx)
 
-	// Wait for a little more than 2 intervals
-	time.Sleep(120 * time.Millisecond)
+	// Wait up to 300ms per iteration + interval, giving plenty of time for 2 loops to finish.
+	time.Sleep(800 * time.Millisecond)
 	cancel() // stop worker
 
-	// A wait interval to guarantee that any running goroutine had time to process Cancel 
-	// before reading the metric
-	time.Sleep(10 * time.Millisecond)
+	// Expandimos esse tempo para garantir que a goroutine executando simulateProcess()
+	// conclua o seu time.Sleep(50..250ms) pendente e saia do loop finalizando a thread, 
+	// antes que o teste termine e o Windows tente deletar o executável temporário.
+	time.Sleep(350 * time.Millisecond)
 
 	val := testutil.ToFloat64(counter)
 
@@ -47,17 +54,28 @@ func TestNewWorker_Errors(t *testing.T) {
 		Help: "test",
 	})
 
-	_, err := metrics.NewWorker(nil, 50*time.Millisecond)
+	duration := prometheus.NewHistogram(prometheus.HistogramOpts{
+		Name:    "test_duration2",
+		Help:    "test",
+		Buckets: prometheus.DefBuckets,
+	})
+
+	_, err := metrics.NewWorker(nil, duration, 50*time.Millisecond)
 	if err == nil {
 		t.Error("expected error with nil counter")
 	}
 
-	_, err = metrics.NewWorker(counter, 0)
+	_, err = metrics.NewWorker(counter, nil, 50*time.Millisecond)
+	if err == nil {
+		t.Error("expected error with nil duration")
+	}
+
+	_, err = metrics.NewWorker(counter, duration, 0)
 	if err == nil {
 		t.Error("expected error with 0 interval")
 	}
 
-	_, err = metrics.NewWorker(counter, -1*time.Second)
+	_, err = metrics.NewWorker(counter, duration, -1*time.Second)
 	if err == nil {
 		t.Error("expected error with negative interval")
 	}

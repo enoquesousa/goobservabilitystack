@@ -34,7 +34,7 @@ func main() {
 		log.Fatalf("failed to initialize metrics registry: %v", err)
 	}
 
-	worker, err := metrics.NewWorker(reg.EventsCounter(), 5*time.Second)
+	worker, err := metrics.NewWorker(reg.EventsCounter(), reg.ProcessDuration(), 5*time.Second)
 	if err != nil {
 		log.Fatalf("failed to initialize metrics worker: %v", err)
 	}
