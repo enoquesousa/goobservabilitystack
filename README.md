@@ -3,7 +3,7 @@
 > Reference implementation for observability in Go — RED metrics, OTel tracing, Prometheus, Jaeger, and Grafana in a single, composed stack.
 
 ![CI](https://github.com/ESousa97/goobservabilitystack/actions/workflows/ci.yml/badge.svg)
-![Go Report Card](https://goreportcard.com/badge/github.com/ESousa97/goobservabilitystack)
+![Go Report Card](https://goreportcard.com/badge/github.com/ESousa97/goobservabilitystack?=v1)
 ![Go Reference](https://pkg.go.dev/badge/github.com/ESousa97/goobservabilitystack.svg)
 ![License](https://img.shields.io/github/license/ESousa97/goobservabilitystack)
 ![Go Version](https://img.shields.io/github/go-mod/go-version/ESousa97/goobservabilitystack)
