@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/ESousa97/goobservabilitystack/internal/metrics"
-	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 )
 
 // ExampleNewRegistry demonstrates how to create a new metrics registry
@@ -28,7 +28,7 @@ func ExampleNewRegistry() {
 // that records metrics and emits traces.
 func ExampleWorker() {
 	reg, _ := metrics.NewRegistry()
-	tracer := trace.NewNoopTracerProvider().Tracer("example")
+	tracer := noop.NewTracerProvider().Tracer("example")
 
 	// Create a worker that ticks every 100ms
 	worker, err := metrics.NewWorker(

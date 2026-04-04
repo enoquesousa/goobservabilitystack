@@ -131,7 +131,7 @@ func TestIntegration_RedMetricsPopulated(t *testing.T) {
 	if err != nil {
 		t.Fatalf("request failed: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("expected HTTP 200, got %d", resp.StatusCode)
@@ -164,7 +164,7 @@ func TestIntegration_TraceparentHeaderInjected(t *testing.T) {
 	if err != nil {
 		t.Fatalf("request failed: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	tp := resp.Header.Get("Traceparent")
 	if tp == "" {
@@ -193,7 +193,7 @@ func TestIntegration_ErrorCounterLabelled(t *testing.T) {
 	if err != nil {
 		t.Fatalf("request failed: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	got := gatherCounter(t, reg, "http_requests_total", map[string]string{
 		"method":      "GET",

@@ -7,14 +7,14 @@ import (
 
 	"github.com/ESousa97/goobservabilitystack/internal/metrics"
 	"github.com/ESousa97/goobservabilitystack/internal/middleware"
-	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 )
 
 // ExampleRED demonstrates how to wrap an HTTP handler with the RED middleware
 // to automatically record metrics and traces.
 func ExampleRED() {
 	reg, _ := metrics.NewRegistry()
-	tracer := trace.NewNoopTracerProvider().Tracer("example")
+	tracer := noop.NewTracerProvider().Tracer("example")
 
 	// Configure the RED middleware
 	redMiddleware := middleware.RED(middleware.Config{
@@ -26,7 +26,7 @@ func ExampleRED() {
 	// Create a simple handler
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprintln(w, "Hello, Observability!")
+		_, _ = fmt.Fprintln(w, "Hello, Observability!")
 	})
 
 	// Wrap the handler with the middleware

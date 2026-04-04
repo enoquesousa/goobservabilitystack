@@ -12,6 +12,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 )
 
 // Worker increments a Prometheus Counter on a fixed interval and emits an OTel
@@ -44,7 +45,7 @@ func NewWorker(
 		return nil, errors.New("metrics: worker interval must be positive")
 	}
 	if tracer == nil {
-		tracer = trace.NewNoopTracerProvider().Tracer("")
+		tracer = noop.NewTracerProvider().Tracer("")
 	}
 	return &Worker{
 		counter:  counter,
@@ -76,7 +77,7 @@ func (w *Worker) Run(ctx context.Context) {
 func (w *Worker) simulateProcess(ctx context.Context) {
 	taskID := fmt.Sprintf("task-%04d", w.taskSeq.Add(1))
 
-	ctx, span := w.tracer.Start(ctx, "worker.task",
+	_, span := w.tracer.Start(ctx, "worker.task",
 		trace.WithSpanKind(trace.SpanKindInternal),
 	)
 	defer span.End()
