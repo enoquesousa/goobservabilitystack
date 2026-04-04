@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/ESousa97/goobservabilitystack/internal/metrics"
+	"github.com/ESousa97/goobservabilitystack/internal/middleware"
 	"github.com/ESousa97/goobservabilitystack/internal/tracing"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -55,7 +56,18 @@ func main() {
 
 	go worker.Run(ctx)
 
+	// RED middleware — instruments every app request with Rate, Errors and Duration
+	// metrics and wraps each request in an OTel server span.
+	httpTracer := tp.Tracer("goobservabilitystack/http")
+	redMiddleware := middleware.RED(middleware.Config{
+		RequestsTotal: reg.HTTPRequestsTotal(),
+		Duration:      reg.HTTPDuration(),
+		Tracer:        httpTracer,
+	})
+
 	// Metrics server — exposes /metrics for Prometheus scraping.
+	// This server is intentionally NOT wrapped by the RED middleware to avoid
+	// self-referential cardinality noise in the http_requests_total counter.
 	metricsMux := http.NewServeMux()
 	metricsMux.Handle("/metrics", promhttp.HandlerFor(reg.Gatherer(), promhttp.HandlerOpts{}))
 	metricsServer := &http.Server{
@@ -66,14 +78,14 @@ func main() {
 		IdleTimeout:  60 * time.Second,
 	}
 
-	// Application server — serves application routes and health checks.
+	// Application server — all handlers are automatically observed by the RED middleware.
 	appMux := http.NewServeMux()
-	appMux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
+	appMux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 	appServer := &http.Server{
 		Addr:         ":" + appPort,
-		Handler:      appMux,
+		Handler:      redMiddleware(appMux),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  60 * time.Second,
