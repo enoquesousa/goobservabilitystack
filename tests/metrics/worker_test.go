@@ -23,7 +23,8 @@ func TestWorker(t *testing.T) {
 	})
 
 	interval := 50 * time.Millisecond
-	worker, err := metrics.NewWorker(counter, duration, interval)
+	// nil tracer is accepted — Worker falls back to a no-op TracerProvider.
+	worker, err := metrics.NewWorker(counter, duration, interval, nil)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -37,7 +38,7 @@ func TestWorker(t *testing.T) {
 	cancel() // stop worker
 
 	// Expandimos esse tempo para garantir que a goroutine executando simulateProcess()
-	// conclua o seu time.Sleep(50..250ms) pendente e saia do loop finalizando a thread, 
+	// conclua o seu time.Sleep(50..250ms) pendente e saia do loop finalizando a thread,
 	// antes que o teste termine e o Windows tente deletar o executável temporário.
 	time.Sleep(350 * time.Millisecond)
 
@@ -60,22 +61,23 @@ func TestNewWorker_Errors(t *testing.T) {
 		Buckets: prometheus.DefBuckets,
 	})
 
-	_, err := metrics.NewWorker(nil, duration, 50*time.Millisecond)
+	// nil tracer is valid — not an error condition.
+	_, err := metrics.NewWorker(nil, duration, 50*time.Millisecond, nil)
 	if err == nil {
 		t.Error("expected error with nil counter")
 	}
 
-	_, err = metrics.NewWorker(counter, nil, 50*time.Millisecond)
+	_, err = metrics.NewWorker(counter, nil, 50*time.Millisecond, nil)
 	if err == nil {
 		t.Error("expected error with nil duration")
 	}
 
-	_, err = metrics.NewWorker(counter, duration, 0)
+	_, err = metrics.NewWorker(counter, duration, 0, nil)
 	if err == nil {
 		t.Error("expected error with 0 interval")
 	}
 
-	_, err = metrics.NewWorker(counter, duration, -1*time.Second)
+	_, err = metrics.NewWorker(counter, duration, -1*time.Second, nil)
 	if err == nil {
 		t.Error("expected error with negative interval")
 	}

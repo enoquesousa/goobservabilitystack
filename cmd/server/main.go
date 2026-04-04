@@ -1,6 +1,7 @@
 // Command server is the entrypoint for the goobservabilitystack service.
 // It starts an application HTTP server on HTTP_PORT (default 8080) and a
 // dedicated metrics HTTP server on METRICS_PORT (default 9091).
+// OpenTelemetry tracing is initialised at startup and flushed on graceful shutdown.
 package main
 
 import (
@@ -13,6 +14,7 @@ import (
 	"time"
 
 	"github.com/ESousa97/goobservabilitystack/internal/metrics"
+	"github.com/ESousa97/goobservabilitystack/internal/tracing"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -29,18 +31,27 @@ func main() {
 	appPort := envOr("HTTP_PORT", "8080")
 	metricsPort := envOr("METRICS_PORT", "9091")
 
+	// Initialise OTel TracerProvider with stdout exporter.
+	// The shutdown function is called during graceful shutdown to flush pending spans.
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
+	defer cancel()
+
+	tp, shutdownTracing, err := tracing.New(ctx, "goobservabilitystack")
+	if err != nil {
+		log.Fatalf("failed to initialise tracing provider: %v", err)
+	}
+
+	taskTracer := tp.Tracer("goobservabilitystack/worker")
+
 	reg, err := metrics.NewRegistry()
 	if err != nil {
 		log.Fatalf("failed to initialize metrics registry: %v", err)
 	}
 
-	worker, err := metrics.NewWorker(reg.EventsCounter(), reg.ProcessDuration(), 5*time.Second)
+	worker, err := metrics.NewWorker(reg.EventsCounter(), reg.ProcessDuration(), 5*time.Second, taskTracer)
 	if err != nil {
 		log.Fatalf("failed to initialize metrics worker: %v", err)
 	}
-
-	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
-	defer cancel()
 
 	go worker.Run(ctx)
 
@@ -93,6 +104,11 @@ func main() {
 	}
 	if err := appServer.Shutdown(shutdownCtx); err != nil {
 		log.Printf("app server shutdown error: %v", err)
+	}
+
+	// Flush and close the OTel TracerProvider last, after HTTP servers are down.
+	if err := shutdownTracing(shutdownCtx); err != nil {
+		log.Printf("tracing shutdown error: %v", err)
 	}
 
 	log.Println("shutdown complete")
