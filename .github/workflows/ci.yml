@@ -1,10 +1,15 @@
-name: CI
+name: CI/CD
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "master" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+  packages: write
+  pull-requests: write
 
 jobs:
   lint:
@@ -18,7 +23,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.25.0'
-          cache: false # golangci-lint-action handles its own caching
+          cache: false
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
@@ -60,3 +65,49 @@ jobs:
 
       - name: Build
         run: go build -v -o bin/goobservabilitystack ./cmd/server
+
+  deploy:
+    name: Deploy to GHCR
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=sha,format=long
+            type=raw,value=latest,enable=true
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  guardian:
+    name: Guardian
+    runs-on: ubuntu-latest
+    needs: [lint, test, build]
+    if: failure() && github.event_name == 'pull_request'
+    steps:
+      - name: Close Pull Request
+        run: |
+          gh pr close ${{ github.event.pull_request.number }} \
+            --comment "❌ CI/CD falhou (Lint, Testes ou Build). Este PR foi fechado automaticamente para garantir a estabilidade da branch master. Por favor, corrija os erros e reabra o PR."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

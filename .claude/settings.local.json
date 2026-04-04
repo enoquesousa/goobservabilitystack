@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(find . -not -path ./.git/* -type d)"
-    ]
-  }
-}
