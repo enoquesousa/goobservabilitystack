@@ -1,6 +1,6 @@
 module github.com/ESousa97/goobservabilitystack
 
-go 1.22
+go 1.23
 
 require github.com/prometheus/client_golang v1.19.0
 
@@ -12,5 +12,5 @@ require (
 	github.com/prometheus/common v0.48.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect
-	google.golang.org/protobuf v1.33.0 // indirect
+	google.golang.org/protobuf v1.36.11 // indirect
 )
