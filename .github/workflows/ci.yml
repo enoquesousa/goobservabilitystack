@@ -25,13 +25,12 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24.0'
-          cache: false
+          go-version: '1.25.0'
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v7
         with:
-          version: latest
+          version: v2.11
           args: --timeout=5m
 
   test:
@@ -45,7 +44,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24.0'
+          go-version: '1.25.0'
 
       - name: Install dependencies
         run: go mod download
@@ -64,7 +63,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24.0'
+          go-version: '1.25.0'
 
       - name: Build
         run: go build -v -o bin/goobservabilitystack ./cmd/server
