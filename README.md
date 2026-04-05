@@ -181,6 +181,6 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 Made with ❤️ by [Enoque Sousa](https://github.com/ESousa97)
 
-**Project Status:** Active Development
+**Project Status:** Archived — Study Project
 
 </div>
