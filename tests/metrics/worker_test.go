@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ESousa97/goobservabilitystack/internal/metrics"
+	"github.com/enoquesousa/goobservabilitystack/internal/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 )

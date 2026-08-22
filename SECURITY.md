@@ -8,7 +8,7 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in `goobservabilitystack`, please report it responsibly by opening a [GitHub Security Advisory](https://github.com/ESousa97/goobservabilitystack/security/advisories/new) instead of a public issue.
+If you discover a security vulnerability in `goobservabilitystack`, please report it responsibly by opening a [GitHub Security Advisory](https://github.com/enoquesousa/goobservabilitystack/security/advisories/new) instead of a public issue.
 
 Include in your report:
 

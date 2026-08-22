@@ -13,9 +13,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ESousa97/goobservabilitystack/internal/metrics"
-	"github.com/ESousa97/goobservabilitystack/internal/middleware"
-	"github.com/ESousa97/goobservabilitystack/internal/tracing"
+	"github.com/enoquesousa/goobservabilitystack/internal/metrics"
+	"github.com/enoquesousa/goobservabilitystack/internal/middleware"
+	"github.com/enoquesousa/goobservabilitystack/internal/tracing"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 

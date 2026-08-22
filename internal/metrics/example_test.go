@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ESousa97/goobservabilitystack/internal/metrics"
+	"github.com/enoquesousa/goobservabilitystack/internal/metrics"
 	"go.opentelemetry.io/otel/trace/noop"
 )
 

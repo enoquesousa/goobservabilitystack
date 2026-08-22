@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/ESousa97/goobservabilitystack/internal/metrics"
-	"github.com/ESousa97/goobservabilitystack/internal/middleware"
+	"github.com/enoquesousa/goobservabilitystack/internal/metrics"
+	"github.com/enoquesousa/goobservabilitystack/internal/middleware"
 	"go.opentelemetry.io/otel/trace/noop"
 )
 

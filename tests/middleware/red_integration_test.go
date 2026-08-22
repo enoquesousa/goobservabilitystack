@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ESousa97/goobservabilitystack/internal/middleware"
+	"github.com/enoquesousa/goobservabilitystack/internal/middleware"
 	"github.com/prometheus/client_golang/prometheus"
 	dto "github.com/prometheus/client_model/go"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"

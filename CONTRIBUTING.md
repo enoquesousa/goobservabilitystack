@@ -96,7 +96,7 @@ docs: update README with stack services table
 
 ## Reporting Bugs
 
-Open a [GitHub issue](https://github.com/ESousa97/goobservabilitystack/issues) with:
+Open a [GitHub issue](https://github.com/enoquesousa/goobservabilitystack/issues) with:
 
 - A clear title.
 - Steps to reproduce.
