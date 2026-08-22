@@ -7,7 +7,6 @@
   <br>
 
   ![CI](https://img.shields.io/github/actions/workflow/status/enoquesousa/goobservabilitystack/ci.yml?style=flat&logo=githubactions&logoColor=white)
-  [![Go Report Card](https://goreportcard.com/badge/github.com/enoquesousa/goobservabilitystack?style=flat)](https://goreportcard.com/report/github.com/enoquesousa/goobservabilitystack)
   [![CodeFactor](https://www.codefactor.io/repository/github/enoquesousa/goobservabilitystack/badge?style=flat)](https://www.codefactor.io/repository/github/enoquesousa/goobservabilitystack)
   [![Go Reference](https://img.shields.io/badge/go.dev-reference-007d9c?style=flat&logo=go&logoColor=white)](https://pkg.go.dev/github.com/enoquesousa/goobservabilitystack)
   ![License](https://img.shields.io/github/license/enoquesousa/goobservabilitystack?style=flat&color=blue)
