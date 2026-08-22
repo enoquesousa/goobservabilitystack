@@ -3,7 +3,7 @@ package metrics_test
 import (
 	"testing"
 
-	"github.com/ESousa97/goobservabilitystack/internal/metrics"
+	"github.com/enoquesousa/goobservabilitystack/internal/metrics"
 )
 
 func TestNewRegistry(t *testing.T) {

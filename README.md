@@ -6,13 +6,13 @@
 
   <br>
 
-  ![CI](https://img.shields.io/github/actions/workflow/status/ESousa97/goobservabilitystack/ci.yml?style=flat&logo=githubactions&logoColor=white)
-  [![Go Report Card](https://goreportcard.com/badge/github.com/ESousa97/goobservabilitystack?style=flat)](https://goreportcard.com/report/github.com/ESousa97/goobservabilitystack)
-  [![CodeFactor](https://www.codefactor.io/repository/github/esousa97/goobservabilitystack/badge?style=flat)](https://www.codefactor.io/repository/github/esousa97/goobservabilitystack)
-  [![Go Reference](https://img.shields.io/badge/go.dev-reference-007d9c?style=flat&logo=go&logoColor=white)](https://pkg.go.dev/github.com/ESousa97/goobservabilitystack)
-  ![License](https://img.shields.io/github/license/ESousa97/goobservabilitystack?style=flat&color=blue)
-  ![Go Version](https://img.shields.io/github/go-mod/go-version/ESousa97/goobservabilitystack?style=flat&logo=go&logoColor=white)
-  ![Last Commit](https://img.shields.io/github/last-commit/ESousa97/goobservabilitystack?style=flat)
+  ![CI](https://img.shields.io/github/actions/workflow/status/enoquesousa/goobservabilitystack/ci.yml?style=flat&logo=githubactions&logoColor=white)
+  [![Go Report Card](https://goreportcard.com/badge/github.com/enoquesousa/goobservabilitystack?style=flat)](https://goreportcard.com/report/github.com/enoquesousa/goobservabilitystack)
+  [![CodeFactor](https://www.codefactor.io/repository/github/enoquesousa/goobservabilitystack/badge?style=flat)](https://www.codefactor.io/repository/github/enoquesousa/goobservabilitystack)
+  [![Go Reference](https://img.shields.io/badge/go.dev-reference-007d9c?style=flat&logo=go&logoColor=white)](https://pkg.go.dev/github.com/enoquesousa/goobservabilitystack)
+  ![License](https://img.shields.io/github/license/enoquesousa/goobservabilitystack?style=flat&color=blue)
+  ![Go Version](https://img.shields.io/github/go-mod/go-version/enoquesousa/goobservabilitystack?style=flat&logo=go&logoColor=white)
+  ![Last Commit](https://img.shields.io/github/last-commit/enoquesousa/goobservabilitystack?style=flat)
 </div>
 
 ---
@@ -64,7 +64,7 @@
 ### Installation
 
 ```bash
-git clone https://github.com/ESousa97/goobservabilitystack.git
+git clone https://github.com/enoquesousa/goobservabilitystack.git
 cd goobservabilitystack
 make deps
 make build
@@ -174,12 +174,12 @@ Distributed under the MIT License. See `LICENSE` for more information.
 **Enoque Sousa**
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/enoque-sousa-bb89aa168/)
-[![GitHub](https://img.shields.io/badge/GitHub-100000?style=flat&logo=github&logoColor=white)](https://github.com/ESousa97)
+[![GitHub](https://img.shields.io/badge/GitHub-100000?style=flat&logo=github&logoColor=white)](https://github.com/enoquesousa)
 [![Portfolio](https://img.shields.io/badge/Portfolio-FF5722?style=flat&logo=target&logoColor=white)](https://enoquesousa.vercel.app)
 
 **[⬆ Back to Top](#go-observability-stack)**
 
-Made with ❤️ by [Enoque Sousa](https://github.com/ESousa97)
+Made with ❤️ by [Enoque Sousa](https://github.com/enoquesousa)
 
 **Project Status:** Archived — Study Project
 

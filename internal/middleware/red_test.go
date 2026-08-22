@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ESousa97/goobservabilitystack/internal/middleware"
+	"github.com/enoquesousa/goobservabilitystack/internal/middleware"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"go.opentelemetry.io/otel/trace/noop"

@@ -1,4 +1,4 @@
-module github.com/ESousa97/goobservabilitystack
+module github.com/enoquesousa/goobservabilitystack
 
 go 1.25.0
 
