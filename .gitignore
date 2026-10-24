@@ -3,5 +3,11 @@ bin/
 *.test
 *.out
 .env
+.env.*
+!.env.example
+certs/
+secrets/
+*.key
+*.pem
 CLAUDE.md
 .claude/

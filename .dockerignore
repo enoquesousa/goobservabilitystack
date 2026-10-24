@@ -1,0 +1,10 @@
+.git
+.github
+bin/
+.env
+.env.*
+certs/
+secrets/
+*.key
+*.pem
+*.log

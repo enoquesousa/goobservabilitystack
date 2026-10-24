@@ -7,12 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- Native application and metrics listeners default to loopback and validate host/port configuration before startup.
+- Demo port mappings bind to loopback, Grafana requires an operator-supplied password, and credential files are excluded from image builds.
+- OTLP defaults to TLS, supports CA and mTLS configuration through standard environment variables, and rejects invalid or contradictory transport settings before SDK initialization.
+- Collector headers require TLS and malformed configuration errors do not include credential values.
+- CI uses read permissions by default; package publication is limited to the deploy job. Failed PR checks no longer close or comment on the PR automatically.
+
 ### Planned
 
-- CI Pipeline in GitHub Actions (build, test, lint, govulncheck).
 - Configurable OTel sampling rate via environment variable.
 - Multi-architecture Docker image published to ghcr.io.
-- mTLS support in the Jaeger gRPC exporter.
 
 ---
 
