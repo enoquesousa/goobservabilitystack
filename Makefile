@@ -1,7 +1,7 @@
 BINARY_NAME := goobservabilitystack
 BUILD_DIR   := bin
 
-.PHONY: deps build test lint up
+.PHONY: deps build test lint up down
 
 ## deps: download and tidy Go module dependencies.
 deps:
@@ -23,3 +23,7 @@ lint:
 ## up: build and start the full stack with Docker Compose.
 up:
 	docker compose up --build
+
+## down: stop and remove the full demo stack.
+down:
+	docker compose down

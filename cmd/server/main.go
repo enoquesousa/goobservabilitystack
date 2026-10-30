@@ -1,6 +1,6 @@
 // Command server is the entrypoint for the goobservabilitystack service.
-// It starts an application HTTP server on HTTP_PORT (default 8080) and a
-// dedicated metrics HTTP server on METRICS_PORT (default 9091).
+// It starts an application HTTP server on HTTP_HOST:HTTP_PORT (default 127.0.0.1:8080)
+// and a metrics HTTP server on METRICS_HOST:METRICS_PORT (default 127.0.0.1:9091).
 // OpenTelemetry tracing is initialised at startup and flushed on graceful shutdown.
 package main
 
@@ -10,29 +10,24 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
+	"github.com/enoquesousa/goobservabilitystack/internal/config"
 	"github.com/enoquesousa/goobservabilitystack/internal/metrics"
 	"github.com/enoquesousa/goobservabilitystack/internal/middleware"
 	"github.com/enoquesousa/goobservabilitystack/internal/tracing"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-// envOr returns the value of the environment variable named by key,
-// or fallback if the variable is unset or empty.
-func envOr(key, fallback string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return fallback
-}
-
 func main() {
-	appPort := envOr("HTTP_PORT", "8080")
-	metricsPort := envOr("METRICS_PORT", "9091")
+	listeners, err := config.LoadListeners(os.Getenv)
+	if err != nil {
+		log.Fatalf("invalid listener configuration: %v", err)
+	}
 
-	// Initialise OTel TracerProvider with stdout exporter.
+	// Initialise OTel TracerProvider with the configured OTLP exporter.
 	// The shutdown function is called during graceful shutdown to flush pending spans.
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer cancel()
@@ -71,7 +66,7 @@ func main() {
 	metricsMux := http.NewServeMux()
 	metricsMux.Handle("/metrics", promhttp.HandlerFor(reg.Gatherer(), promhttp.HandlerOpts{}))
 	metricsServer := &http.Server{
-		Addr:         ":" + metricsPort,
+		Addr:         listeners.MetricsAddress,
 		Handler:      metricsMux,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
@@ -84,7 +79,7 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 	appServer := &http.Server{
-		Addr:         ":" + appPort,
+		Addr:         listeners.HTTPAddress,
 		Handler:      redMiddleware(appMux),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
@@ -92,14 +87,14 @@ func main() {
 	}
 
 	go func() {
-		log.Printf("metrics server listening on :%s", metricsPort)
+		log.Printf("metrics server listening on %s", strconv.Quote(listeners.MetricsAddress))
 		if err := metricsServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("metrics server error: %v", err)
 		}
 	}()
 
 	go func() {
-		log.Printf("app server listening on :%s", appPort)
+		log.Printf("app server listening on %s", strconv.Quote(listeners.HTTPAddress))
 		if err := appServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("app server error: %v", err)
 		}

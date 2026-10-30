@@ -6,7 +6,6 @@ package tracing
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -17,23 +16,23 @@ import (
 
 // New constructs an OTel TracerProvider backed by an OTLP gRPC exporter.
 // The provider samples 100% of spans and attaches a resource identifying the service.
-// It uses the OTEL_EXPORTER_OTLP_ENDPOINT environment variable if set, otherwise
-// defaults to localhost:4317.
+// It uses the standard OTEL_EXPORTER_OTLP_* environment variables, with the
+// TRACES_* variants taking precedence. The SDK defaults to https://localhost:4317.
+// TLS and optional client certificates are configured by the SDK, without
+// transport overrides. Plaintext requires an explicit, credential-free opt-in.
+// Invalid transport settings fail before exporter creation; collector trust and
+// availability are checked lazily when spans are exported.
 //
 // It returns:
 //   - the configured TracerProvider
 //   - a shutdown function that must be called on graceful shutdown to flush pending spans
 //   - any initialisation error
 func New(ctx context.Context, serviceName string) (trace.TracerProvider, func(context.Context) error, error) {
-	endpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
-	if endpoint == "" {
-		endpoint = "localhost:4317"
+	if err := validateEnvironment(); err != nil {
+		return nil, nil, err
 	}
 
-	exporter, err := otlptracegrpc.New(ctx,
-		otlptracegrpc.WithEndpoint(endpoint),
-		otlptracegrpc.WithInsecure(),
-	)
+	exporter, err := otlptracegrpc.New(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("tracing: create otlp grpc exporter: %w", err)
 	}

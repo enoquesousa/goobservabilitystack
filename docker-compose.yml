@@ -2,11 +2,14 @@ services:
   app:
     build: .
     ports:
-      - "8080:8080"
-      - "9091:9091"
+      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:9091:9091"
     environment:
-      - OTEL_EXPORTER_OTLP_ENDPOINT=jaeger:4317
+      # Plaintext is explicit and limited to the trusted local demo network.
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - HTTP_HOST=0.0.0.0
       - HTTP_PORT=8080
+      - METRICS_HOST=0.0.0.0
       - METRICS_PORT=9091
     depends_on:
       - jaeger
@@ -17,30 +20,31 @@ services:
   prometheus:
     image: prom/prometheus:latest
     volumes:
-      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090"
     networks:
       - observability
 
   jaeger:
     image: jaegertracing/all-in-one:latest
     ports:
-      - "16686:16686" # UI
-      - "4317:4317"   # OTLP gRPC
-      - "4318:4318"   # OTLP HTTP
+      - "127.0.0.1:16686:16686" # UI
+      - "127.0.0.1:4317:4317"   # OTLP gRPC
+      - "127.0.0.1:4318:4318"   # OTLP HTTP
     networks:
       - observability
 
   grafana:
     image: grafana/grafana:latest
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     volumes:
-      - ./deploy/grafana/provisioning:/etc/grafana/provisioning
-      - ./deploy/grafana/dashboards:/etc/grafana/dashboards
+      - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./deploy/grafana/dashboards:/etc/grafana/dashboards:ro
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?Set a non-empty Grafana admin password before starting the demo}
+      - GF_AUTH_ANONYMOUS_ENABLED=false
       - GF_USERS_ALLOW_SIGN_UP=false
     depends_on:
       - prometheus

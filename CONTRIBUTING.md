@@ -4,10 +4,10 @@ Thank you for your interest in contributing to `goobservabilitystack`.
 
 ## Prerequisites
 
-- Go 1.25 or later
+- Go 1.26.10 or later
 - Docker and Docker Compose
-- `golangci-lint` — install via `go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest`
-- `govulncheck` — install via `go install golang.org/x/vuln/cmd/govulncheck@latest`
+- `golangci-lint` 2.12.1, matching the CI workflow
+- `govulncheck` 1.9.0 — install via `go install golang.org/x/vuln/cmd/govulncheck@v1.9.0`
 
 ## Workflow
 
@@ -36,6 +36,11 @@ make lint
 # Vulnerability audit
 govulncheck ./...
 ```
+
+The full-stack demo also requires a non-empty `GRAFANA_ADMIN_PASSWORD`; see the
+README for the interactive setup. Do not put real passwords, collector headers,
+private keys, or resolved Compose configuration in test output or pull requests.
+TLS and collector tests must use temporary certificates and synthetic credentials.
 
 ## Coding Standards
 
